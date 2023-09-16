@@ -10,7 +10,8 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
     min_syanten = 8
     seq = [list(i) for i in seq_tuple]
     nums = 0
-    data = [[], [], [], [], []]
+
+    data = {"pos": [[], [], [], [], []]}
     # 预处理
     # 1. 获取可能的 0.雀头、1.顺子、2.刻子、3.搭子、4.对子
     # 2. 获取总牌数
@@ -18,10 +19,10 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
         for j in range(0, len(seq[i]), 2):
             nums += seq[i][j]
             if seq[i][j] >= 2:  # 雀头，对子
-                data[0].append((i, j))
-                data[4].append((i, j))
+                data["pos"][0].append((i, j))
+                data["pos"][4].append((i, j))
             if seq[i][j] >= 3:  # 刻子
-                data[2].append((i, j))
+                data["pos"][2].append((i, j))
             if (
                 j < len(seq[i]) - 4
                 and seq[i][j] >= 1
@@ -30,10 +31,22 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
                 and seq[i][j + 1] == 1
                 and seq[i][j + 3] == 1
             ):  # 顺子
-                data[1].append((i, j))
+                data["pos"][1].append((i, j))
             if j < len(seq[i]) - 2 and seq[i][j] >= 1 and seq[i][j + 2] >= 1:  # 搭子
-                data[3].append((i, j))
-    for has_atama in atama_iter(seq, data[0]):  # 迭代所有雀头
+                data["pos"][3].append((i, j))
+
+    # 如果总牌数不是 3n - 1 或 3n - 2，则将其补齐为 3n - 1，补的牌视作孤张
+    while nums % 3 != 2:
+        seq.append((1,))
+        nums += 1
+
+    data["all"] = nums
+    data["k"] = (nums - 2) / 3
+    data["menzu"] = 0
+    data["dazu"] = 0
+    data["s_min"] = 8
+    for has_atama in atama_iter(seq, data["pos"][0]):  # 迭代所有雀头
+        data["atama"] = 1 if has_atama else 0
         s = pop_menzu(seq, data, nums - 2 if has_atama else nums, has_atama, 0)
         min_syanten = min(min_syanten, s)
     return min_syanten - 1
@@ -83,9 +96,11 @@ def pop_menzu(
     """
     取面子
     """
+    if data["s_min"] == -1:
+        return -1
     min_syanten = 8
     if nums >= 3:  # 如果还有 3 张牌以上，才可能有完整顺子或刻子
-        for i, j in data[1]:  # 顺子
+        for i, j in data["pos"][1]:  # 顺子
             if (
                 j < len(seq[i]) - 4
                 and seq[i][j] >= 1
@@ -98,16 +113,20 @@ def pop_menzu(
                 seq[i][j] -= 1
                 seq[i][j + 2] -= 1
                 seq[i][j + 4] -= 1
+                data["menzu"] += 1
                 s = pop_menzu(seq, data, nums - 3, has_atama, menzu + 1)
+                data["menzu"] -= 1
                 min_syanten = min(min_syanten, s)
                 seq[i][j] += 1
                 seq[i][j + 2] += 1
                 seq[i][j + 4] += 1
-        for i, j in data[2]:  # 刻子
+        for i, j in data["pos"][2]:  # 刻子
             if seq[i][j] >= 3:
                 # 同一种牌有三张，取出刻子
                 seq[i][j] -= 3
+                data["menzu"] += 1
                 s = pop_menzu(seq, data, nums - 3, has_atama, menzu=menzu + 1)
+                data["menzu"] -= 1
                 min_syanten = min(min_syanten, s)
                 seq[i][j] += 3
     res = syanten_other(seq, data, nums, has_atama)
@@ -124,32 +143,42 @@ def syanten_other(
     """
     取搭子
     """
+    if data["s_min"] == -1:
+        return -1
     min_syanten = 8
-    syanten = 0
+    if data["menzu"] + add > data["k"]:
+        return 8
     if nums >= 2:  # 如果还有 2 张牌以上，才可能有搭子
-        for i, j in data[3]:  # 搭子
+        for i, j in data["pos"][3]:  # 搭子
             if j < len(seq[i]) - 2 and seq[i][j] >= 1 and seq[i][j + 2] >= 1:
                 seq[i][j] -= 1
                 seq[i][j + 2] -= 1
+                data["dazu"] += 1
                 syanten = syanten_other(seq, data, nums - 2, has_atama, add + 1)
+                data["dazu"] -= 1
                 min_syanten = min(min_syanten, syanten)
                 seq[i][j] += 1
                 seq[i][j + 2] += 1
-        for i, j in data[4]:  # 对子
+        for i, j in data["pos"][4]:  # 对子
             if seq[i][j] >= 2:
                 seq[i][j] -= 2
+                data["dazu"] += 1
                 syanten = syanten_other(seq, data, nums - 2, has_atama, add + 1)
+                data["dazu"] -= 1
                 min_syanten = min(min_syanten, syanten)
                 seq[i][j] += 2
-
+    syanten = 0
     # 处理孤张
     # 孤张优先用来补搭子
     nums -= add
 
+    if nums < 0:  # 不够补搭子，则需要拆搭子
+        return 8
+
     if nums % 3 == 2:
-        # 搞到最后还有两张孤张，如果没有雀头则是一向，否则是两向
+        # 搞到最后还有两张孤张，如果没有雀头则是一向，否则是听牌
         if has_atama:
-            syanten += 2
+            syanten += 0
         else:
             syanten += 1
         nums -= 2
@@ -160,4 +189,6 @@ def syanten_other(
         nums -= 1
 
     syanten += nums // 3 * 2
-    return min(syanten + add, min_syanten)
+    s = min(syanten + add, min_syanten)
+    data["s_min"] = s
+    return s
