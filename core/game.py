@@ -1,4 +1,6 @@
+from collections import Counter
 from random import shuffle
+from typing import Self
 
 from .syanten import syanten
 from .utils import ALL
@@ -16,25 +18,93 @@ class Hand(list[Tile]):
     def syanten(self) -> int:
         return syanten(self.encode())
 
-    def str_format(self) -> str:
-        current = ""
-        c_suit = 0
+    def to_str(self) -> str:
+        return Hand.strfhand(self)
 
-        def symbol(suit: int) -> str:
-            return "m" if suit == 0 else "p" if suit == 1 else "s" if suit == 2 else "z"
+    @staticmethod
+    def strthand(s: str) -> Self:
+        """
+        将  https://tenhou.net/2/ 格式的字符串转换成手牌
 
-        for it in self:
-            if it.suit > c_suit:
-                if current != "" and c_suit < 3:
-                    current += symbol(c_suit)
-            if it.suit < 3:
-                current += str(it.val)
+        Returns:
+            str: 手牌
+        """
+        cur = []
+        ans = []
+        keys = {
+            "m": 0,
+            "p": 1,
+            "s": 2,
+            "z": 3,
+            "M": 0,
+            "P": 1,
+            "S": 2,
+            "Z": 3,
+        }
+        cnt = Counter()
+        for ch in s:
+            if ch in keys:
+                if cur:
+                    base_code = keys[ch] * 100 if keys[ch] < 3 else keys[ch] * 100 - 100
+                    code_multiplier = 10 if keys[ch] < 3 else 100
+                    ans += [
+                        Tile(
+                            base_code
+                            + i * code_multiplier
+                            + cnt[base_code + i * code_multiplier]
+                        )
+                        for i in cur
+                    ]
+                    for i in cur:
+                        cnt[base_code + i * code_multiplier] += 1
+                    cur = []
             else:
-                current += str(it.suit - 2)
-            c_suit = it.suit
-        return current + symbol(c_suit)
+                cur.append(int(ch))
+        if cur:
+            ans += [Tile(keys[ch] * 100 + i * 10) for i in cur]
+        return Hand(ans)
+
+    @staticmethod
+    def strfhand(hand: Self) -> str:
+        """
+        将手牌转换为字符串，使用 https://tenhou.net/2/ 的格式
+
+        Returns:
+            str: 字符串手牌
+        """
+        prev_suit = hand[0].suit
+        prev_val = hand[0].val
+        res = ""
+        cur = [prev_val]
+        key = {
+            0: "m",
+            1: "p",
+            2: "s",
+        }
+        for i in range(1, len(hand)):
+            if hand[i].suit == prev_suit:
+                if key.get(prev_suit, "z") == "z":
+                    cur.append(hand[i].suit - 2)
+                else:
+                    cur.append(hand[i].val)
+            else:
+                res += "".join([str(i) for i in cur]) + key.get(prev_suit, "z")
+                if key.get(hand[i].suit, "z") == "z":
+                    cur = [hand[i].suit - 2]
+                else:
+                    cur = [hand[i].val]
+                prev_suit = hand[i].suit
+        res += "".join([str(i) for i in cur]) + key.get(prev_suit, "z")
+        return res
 
     def encode(self) -> list[list[int]]:
+        """
+        将手牌编码为一个列表
+        时间复杂度 O(n)
+
+        Returns:
+            list[list[int]]: _description_
+        """
         prev_suit = self[0].suit
         prev_val = self[0].val
         res = []
@@ -55,6 +125,9 @@ class Hand(list[Tile]):
             prev_val = self[i].val
         res.append(tuple(cur) if cur < cur[::-1] else tuple(cur[::-1]))
         return tuple(res)
+
+    def syanten(self) -> int:
+        return syanten(self.encode())
 
 
 class Player:

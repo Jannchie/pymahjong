@@ -1,3 +1,14 @@
+import pickle
+import gzip
+import os
+
+syanten_dict = None
+
+if os.path.exists("./data/syanten.pkl.gz"):
+    print("Loading syanten.pkl.gz")
+    syanten_dict = pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
+
+
 def syanten(seq_tuple: tuple[tuple[int]]) -> int:
     """计算向听数
 
@@ -7,6 +18,7 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
     Returns:
         int: 向听数, 0 为听牌, -1 为和牌
     """
+
     min_syanten = 8
     seq = [list(i) for i in seq_tuple]
     nums = 0
@@ -37,8 +49,11 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
 
     # 如果总牌数不是 3n - 1 或 3n - 2，则将其补齐为 3n - 1，补的牌视作孤张
     while nums % 3 != 2:
-        seq.append((1,))
+        seq.insert(0, (1,))
         nums += 1
+
+    if syanten_dict is not None:
+        return syanten_dict[tuple(sorted([tuple(t) for t in seq]))]
 
     data["all"] = nums
     data["k"] = (nums - 2) / 3

@@ -1,9 +1,15 @@
 import unittest
 import random
-from . import Game
+
+from . import Game, Hand
 
 
 class TestGame(unittest.TestCase):
+    def benchmark_hand_encode(self):
+        random.seed(47)
+        hand = Game.get_random_hand(14)
+        hand.encode()
+
     def test_game(self):
         random.seed(47)
         g = Game()
@@ -50,11 +56,18 @@ class TestGame(unittest.TestCase):
         random.seed(217321)
         for i in range(15):
             hand = Game.get_random_hand(14)
-            print('---')
-            print(hand.str_format())
+            print("---")
+            print(hand.to_str())
             print(hand.syanten(), hand)
             print(hand.encode())
-            print('---')
+            print("---")
+
+    def test_hand_str_format2(self):
+        s = "1225889m1356p15s3z"
+        self.assertEqual(s, Hand.strthand(s).to_str())
+        s = "125889m1356p15s3z9m"
+        self.assertEqual("125889m1356p15s3z9m", Hand.strthand(s).to_str())
+
 
 if __name__ == "__main__":
     unittest.main()

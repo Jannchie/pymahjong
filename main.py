@@ -12,7 +12,9 @@ def calculate_syanten(seq):
     return (seq, syanten(seq))
 
 
-def generate_syanten_dict(seqs_data: list):
+def syanten_dict(seqs_data: list):
+    if os.path.exists("./data/syanten.pkl.gz"):
+        return pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
     # 使用多进程池
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
 
@@ -30,14 +32,19 @@ def generate_syanten_dict(seqs_data: list):
 
 
 if __name__ == "__main__":
-    if os.path.exists("./data/seqs.pkl.gz"):
-        print("Loading seqs.pkl.gz")
-        seqs_data = pickle.loads(gzip.open("./data/seqs.pkl.gz", "rb").read())
-    else:
-        seqs_data = generate_sorted_seqs_set()
-        gzip.open("./data/seqs.pkl.gz", "wb").write(pickle.dumps(seqs_data))
+    syanten_data = pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
+    pass
+    for key in syanten_data.keys():
+        if len(key) == 1 and len(key[0]) == 1:
+            print(key)
+    # if os.path.exists("./data/seqs.pkl.gz"):
+    #     print("Loading seqs.pkl.gz")
+    #     seqs_data = pickle.loads(gzip.open("./data/seqs.pkl.gz", "rb").read())
+    # else:
+    #     seqs_data = generate_sorted_seqs_set()
+    #     gzip.open("./data/seqs.pkl.gz", "wb").write(pickle.dumps(seqs_data))
 
-    def save_dict(syanten_dict: dict):
-        gzip.open("./data/syanten_dict.pkl.gz", "wb").write(pickle.dumps(syanten_dict))
+    # def save_dict(syanten_dict: dict):
+    #     gzip.open("./data/syanten.pkl.gz", "wb").write(pickle.dumps(syanten_dict))
 
-    save_dict(generate_syanten_dict(seqs_data))
+    # save_dict(syanten_dict(seqs_data))
