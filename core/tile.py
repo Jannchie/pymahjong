@@ -22,6 +22,18 @@ class Tile:
         self.code = code
 
     @property
+    def emoji(self) -> str:
+        if self.suit >= 3:
+            return ["🀀", "🀁", "🀂", "🀃", "🀆", "🀅", "🀄"][self.suit - 3]
+        elif self.suit == 0:
+            return ["🀇", "🀈", "🀉", "🀊", "🀋", "🀌", "🀍", "🀎", "🀏"][self.val - 1]
+        elif self.suit == 1:
+            return ["🀐", "🀑", "🀒", "🀓", "🀔", "🀕", "🀖", "🀗", "🀘"][self.val - 1]
+        elif self.suit == 2:
+            return ["🀙", "🀚", "🀛", "🀜", "🀝", "🀞", "🀟", "🀠", "🀡"][self.val - 1]
+        raise ValueError("Invalid Tile")
+
+    @property
     def suit(self) -> int:
         return get_suit(self.code)
 
@@ -78,7 +90,7 @@ class Tile:
         return self.code
 
     def __repr__(self) -> str:
-        return str(self.code)
+        return f'Tile("{self}")'
 
     def __lt__(self, o: object) -> bool:
         return self.code < o.code
