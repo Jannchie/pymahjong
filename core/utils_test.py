@@ -3,18 +3,14 @@ import unittest
 from . import utils
 
 
-
-def devide(n: int, max = 4):
+def devide(n: int, max=4):
     ans = []
-    for i in range(1, max+1):
+    for i in range(1, max + 1):
         ans.append([i] + devide(n - i, max))
     return ans
 
 
 class TestUtils(unittest.TestCase):
-
-                    
-    
     def test_code(self):
         data = (
             (10, "一萬"),
@@ -33,9 +29,9 @@ class TestUtils(unittest.TestCase):
         for d in data:
             self.assertEqual(utils.get_str(d[0]), d[1])
 
-        self.assertRaises(ValueError, utils.get_str, 475)
+        self.assertRaises(ValueError, utils.get_str, 476)
         self.assertRaises(ValueError, utils.get_str, 512)
-        self.assertRaises(ValueError, utils.get_str, 274)
+        self.assertRaises(ValueError, utils.get_str, 275)
 
     def test_is_same(self):
         self.assertTrue(utils.is_same_suit(110, 120))

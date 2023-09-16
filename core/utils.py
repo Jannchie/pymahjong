@@ -4,6 +4,12 @@ S = [200 + (i + 1) * 10 + j for i in range(9) for j in range(4)]
 Z = [300 + i * 100 + j for i in range(7) for j in range(4)]
 ALL = M + P + S + Z
 
+ALL_DIFFERENT = []
+for i in range(3):
+    ALL_DIFFERENT += [i * 100 + j * 10 for j in range(1, 10)]
+for i in range(3, 10):
+    ALL_DIFFERENT += [i * 100]
+
 
 def get_suit(x: int):
     return x // 100
@@ -36,7 +42,7 @@ def get_val_str(x: int):
 
 
 def is_valid(x: int):
-    if get_ver(x) >= 4:
+    if get_ver(x) >= 5:
         return False
     v = get_val(x)
     if get_suit(x) < 3:
