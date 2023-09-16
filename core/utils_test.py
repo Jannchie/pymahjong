@@ -25,10 +25,10 @@ class TestUtils(unittest.TestCase):
             (400, "南"),
             (500, "西"),
             (600, "北"),
-            (700, "中"),
+            (700, "白"),
             (801, "發"),
-            (902, "白"),
-            (903, "白"),
+            (902, "中"),
+            (903, "中"),
         )
         for d in data:
             self.assertEqual(utils.get_str(d[0]), d[1])

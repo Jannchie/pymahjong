@@ -46,6 +46,15 @@ class TestGame(unittest.TestCase):
         hand = Game.get_random_hand()
         self.assertEqual(len(hand), 13)
 
+    def test_hand_str_format(self):
+        random.seed(217321)
+        for i in range(15):
+            hand = Game.get_random_hand(14)
+            print('---')
+            print(hand.str_format())
+            print(hand.syanten(), hand)
+            print(hand.encode())
+            print('---')
 
 if __name__ == "__main__":
     unittest.main()

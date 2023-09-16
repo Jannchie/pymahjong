@@ -16,6 +16,24 @@ class Hand(list[Tile]):
     def syanten(self) -> int:
         return syanten(self.encode())
 
+    def str_format(self) -> str:
+        current = ""
+        c_suit = 0
+
+        def symbol(suit: int) -> str:
+            return "m" if suit == 0 else "p" if suit == 1 else "s" if suit == 2 else "z"
+
+        for it in self:
+            if it.suit > c_suit:
+                if current != "" and c_suit < 3:
+                    current += symbol(c_suit)
+            if it.suit < 3:
+                current += str(it.val)
+            else:
+                current += str(it.suit - 2)
+            c_suit = it.suit
+        return current + symbol(c_suit)
+
     def encode(self) -> list[list[int]]:
         prev_suit = self[0].suit
         prev_val = self[0].val

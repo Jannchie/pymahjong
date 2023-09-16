@@ -25,13 +25,13 @@ def get_suit_str(x: int):
     elif get_suit(x) == 2:
         return "條"
     elif 3 <= get_suit(x) <= 9:
-        return ["東", "南", "西", "北", "中", "發", "白"][get_suit(x) - 3]
+        return ["東", "南", "西", "北", "白", "發", "中"][get_suit(x) - 3]
     raise ValueError("Invalid Tile")
 
 
 def get_val_str(x: int):
     if get_suit(x) >= 3:
-        return ["東", "南", "西", "北", "中", "發", "白"][get_suit(x) - 3]
+        return ["東", "南", "西", "北", "白", "發", "中"][get_suit(x) - 3]
     return ["一", "二", "三", "四", "五", "六", "七", "八", "九"][get_val(x) - 1]
 
 
@@ -49,7 +49,7 @@ def get_str(x: int):
     if not is_valid(x):
         raise ValueError("Invalid Tile:", x)
     if get_suit(x) >= 3:
-        return ["東", "南", "西", "北", "中", "發", "白"][get_suit(x) - 3]
+        return ["東", "南", "西", "北", "白", "發", "中"][get_suit(x) - 3]
     else:
         return get_val_str(x) + get_suit_str(x)
 
