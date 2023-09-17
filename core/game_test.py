@@ -3,7 +3,9 @@ import time
 import unittest
 import random
 
-from . import Game, Hand
+from .hand import Hand
+
+from . import Game
 
 
 class TestGame(unittest.TestCase):

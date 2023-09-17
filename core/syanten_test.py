@@ -1,6 +1,6 @@
 import unittest
 
-from core.game import Hand
+from core.hand import Hand
 
 from .syanten import syanten
 
