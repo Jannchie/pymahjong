@@ -1,7 +1,6 @@
 from random import shuffle
 
-from core.player import Player
-
+from .player import Player
 from .hand import Hand, get_str_list
 from .tile import Tile
 from .utils import ALL
@@ -19,7 +18,7 @@ class Game:
         self.wall = self.tiles[:-14]
         self.players: list[Player] = []
         for _ in range(4):
-            p = Player(hand=Hand(self.wall[:13]))
+            p = Player(hand=Hand(self.wall[:13]), game=self)
             self.wall = self.wall[13:]
             p.hand.sort()
             self.players.append(p)

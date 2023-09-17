@@ -62,10 +62,6 @@ def syanten(seq_tuple: tuple[tuple[int]], use_table=True) -> int:
             if j < len(seq[i]) - 2 and seq[i][j] >= 1 and seq[i][j + 2] >= 1:  # 搭子
                 data["pos"][3].append((i, j))
 
-    # if syanten_dict is not None:
-    #     return syanten_dict[tuple(sorted([tuple(t) for t in seq]))]
-
-    data["all"] = nums
     data["k"] = int((nums - 2) / 3)
     data["menzu"] = 0
     data["dazu"] = 0
@@ -207,9 +203,6 @@ def syanten_other(
     data["s_min"] = min(
         2 * (data["k"] - data["menzu"]) - data["dazu"] - data["atama"], data["s_min"]
     )
-    # print(
-    #     f'menzu:{data["menzu"]}, dazu:{data["dazu"]}, atama:{data["atama"]} nums:{nums} ${seq}'
-    # )
 
 
 def calculate_syanten(seq):

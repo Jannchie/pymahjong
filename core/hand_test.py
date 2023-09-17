@@ -2,8 +2,6 @@ import unittest
 
 from core.hand import Hand
 
-from .syanten import syanten
-
 
 class TestHand(unittest.TestCase):
     def test_strthand(self):

@@ -1,7 +1,7 @@
 import unittest
 
-from core.hand import Hand
-from core.tile import Tile
+from .hand import Hand
+from .tile import Tile
 from .player import Player
 
 

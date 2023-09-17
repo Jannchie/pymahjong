@@ -1,5 +1,6 @@
 from .hand import Hand
 from .tile import Tile
+from .game import Game
 
 
 class Player:
@@ -8,10 +9,12 @@ class Player:
         hand: Hand = [],
         sute: list[Tile] = [],
         furu: list[tuple[tuple[Tile, bool]]] = [],
+        game: "Game" = None,
     ):
         self.hand = hand
         self.sute = sute
         self.furu = furu
+        self.game = game
 
     def kire(self, tile: Tile):
         self.hand.remove(tile)

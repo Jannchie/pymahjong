@@ -1,7 +1,6 @@
 import unittest
 
-from core.hand import Hand
-
+from .hand import Hand
 from .syanten import syanten
 
 
