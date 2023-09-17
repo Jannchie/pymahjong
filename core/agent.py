@@ -8,6 +8,9 @@ from .player import Player
 class Agent:
     player: Player
 
+    def __init__(self):
+        self.name = "BaselineAI"
+
     def set_player(self, player: Player):
         self.player = player
 
@@ -30,3 +33,9 @@ class Agent:
             bool: 是否胡牌
         """
         return True
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __str__(self) -> str:
+        return self.name

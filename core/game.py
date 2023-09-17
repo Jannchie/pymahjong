@@ -36,7 +36,14 @@ class Game:
         self.wall = self.tiles[:-14]
         self.players: list[Player] = []
         self.agents = {i: Agent() for i in range(4)}
-        for _ in range(4):
+        names = {
+            0: "Alice",
+            1: "Bob",
+            2: "Carol",
+            3: "Dave",
+        }
+        for i in range(4):
+            self.agents[i].name = names[i]
             p = Player(hand=Hand(self.wall[:13]), game=self)
             self.wall = self.wall[13:]
             p.hand.sort()
@@ -115,7 +122,7 @@ class Game:
         self.print_info()
         t = 0
         for idx, agent in self.agents.items():
-            print(f"对玩家{idx}起手配牌")
+            print(f"对玩家<{agent}>起手配牌")
             agent.set_player(self.players[idx])
         while self.wall:
             self.junmei = t // 4 + 1
@@ -125,7 +132,7 @@ class Game:
             tsumohai = self.tsumo(cur_player_id)
 
             log = ""
-            log += f"玩家{cur_player_id}摸{tsumohai}, "
+            log += f"玩家<{agent}>摸{tsumohai}, "
 
             reach_junmei = False  # 是否在该巡目立直
             syanten = player.hand.syanten  # 获取向听数
@@ -168,7 +175,7 @@ class Game:
                 h = Hand(self.players[i].hand)
                 h.append(sutehai)
                 if h.syanten == -1:
-                    log += f"玩家 {cur_player_id} 放炮！玩家 {i} 荣胡！"
+                    log += f"玩家 <{agent}> 放炮！玩家<{self.agents[i]}>荣胡！"
                     # TODO: 计算番数、点棒流转
                     print(log)
                     return
