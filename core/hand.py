@@ -1,3 +1,4 @@
+from typing_extensions import override
 from .syanten import syanten
 from .tile import Tile
 from .utils import ALL_DIFFERENT
@@ -28,6 +29,10 @@ class Hand(list[Tile]):
     def syanten(self) -> int:
         return self.get_syanten()
 
+    @property
+    def counter(self) -> Counter:
+        return Counter(self)
+
     def get_syanten(self, use_table=True) -> int:
         return syanten(self.encode(), use_table=use_table)
 
@@ -37,17 +42,13 @@ class Hand(list[Tile]):
     def copy(self) -> Self:
         return Hand(self.copy())
 
-    @property
-    def counter(self) -> Counter:
-        return Counter(self)
-
     def get_suggestion(self, use_table=True) -> Suggestion:
         cur_syanten = self.get_syanten(use_table=use_table)
         res = Suggestion()
         for i in range(len(self)):
             cnt = None
             tile = self[i]
-            self.remove(tile)
+            self.kire(tile)
             for code in ALL_DIFFERENT:
                 t = Tile(code)
                 if self.counter[t] == 4:
@@ -59,12 +60,12 @@ class Hand(list[Tile]):
                         cnt = Counter()
                         res[tile] = cnt
                     res[tile][t] = 4 - self.counter[t] + 1
-                self.remove(t)
-            self.append(tile)
+                self.pop()
+            self.insert(i, tile)
         return res
 
     @property
-    def suggestion(self) -> Suggestion:
+    def suggestions(self) -> Suggestion:
         return self.get_suggestion()
 
     def list_yukouhai(self) -> defaultdict[Tile, Counter[Tile]]:
@@ -211,3 +212,9 @@ class Hand(list[Tile]):
             prev_val = hand[i].val
         res.append(tuple(cur) if cur < cur[::-1] else tuple(cur[::-1]))
         return tuple(res)
+
+    def kire(self, tile: Tile):
+        for i in range(len(self)):
+            if self[i].code == tile.code:
+                self.pop(i)
+                return

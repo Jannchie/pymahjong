@@ -42,10 +42,12 @@ class TestSyanten(unittest.TestCase):
             ("2223m", 0),
             ("11234566678891p", 0),
             ("11233446899993m", 1),
+            ("5s61p6s8m2p7m4s346m278p", 0),
         )
         for input_data, expected_result in test_cases_2:
-            self.assertEqual(Hand.strthand(input_data).get_syanten(False), expected_result)
-
+            self.assertEqual(
+                Hand.strthand(input_data).get_syanten(False), expected_result
+            )
 
 if __name__ == "__main__":
     unittest.main()

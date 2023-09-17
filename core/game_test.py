@@ -62,25 +62,24 @@ class TestGame(unittest.TestCase):
         self.assertEqual(s, Hand.strthand(s).to_str())
         s = "125889m1356p15s3z9m"
         self.assertEqual("125889m1356p15s3z9m", Hand.strthand(s).to_str())
-        # print(Hand.strthand("1226m13447p357s2z4z").encode())
 
     def test_suggestion(self):
-        # calculate time
-        start = time.time()
         s = "22355667788994m"
         hand = Hand.strthand(s)
-        # print("---")
-        print(hand.strfhand(hand))
+        # print(hand.strfhand(hand))
         # print(hand.encode())
         # print(hand.syanten)
         data = hand.get_suggestion(False)
         # prittify print
-        for k, v in data.items():
-            print(f"打{k}，摸{'、'.join([str(d) for d in v.keys()])}，共 {sum(v.values())} 枚")
-        print(f"共 {data.amount} 枚有效牌")
+        # for k, v in data.items():
+        #     print(f"打{k}，摸{'、'.join([str(d) for d in v.keys()])}，共 {sum(v.values())} 枚")
+        # print(f"共 {data.amount} 枚有效牌")
+        
         self.assertEqual(len(data.keys()), 6)
-        end = time.time()
-        # print(f"Time: {end - start:.2f}s")
+
+    def test_start(self):
+        random.seed(4123)
+        Game().start()
 
 
 if __name__ == "__main__":

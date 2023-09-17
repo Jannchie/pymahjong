@@ -1,24 +1,40 @@
 from __future__ import annotations
-from .hand import Hand
-from .tile import Tile
 from typing import TYPE_CHECKING
+from .hand import Hand, get_str_list
+from .tile import Tile
 
 if TYPE_CHECKING:
     from .game import Game
+
+
+class Sute:
+    def __init__(self, tile: Tile, is_tsumogiri: bool = False):
+        self.tile = tile
+        self.is_tsumogiri = is_tsumogiri
+
+    def __repr__(self) -> str:
+        return f"<{'摸' if self.is_tsumogiri else '手'}切{self.tile}>"
+
+
+class Furu:
+    def __init__(self, tiles: list[Tile], sute: Tile):
+        self.tiles = tiles
+        self.sute = sute
 
 
 class Player:
     def __init__(
         self,
         hand: Hand = [],
-        sute: list[Tile] = [],
-        furu: list[tuple[tuple[Tile, bool]]] = [],
+        sute: list[Sute] = [],
+        furu: list[Furu] = [],
         game: Game = None,
     ):
         self.hand = hand
         self.sute = sute
         self.furu = furu
         self.game = game
+        self.reach = False
 
     def kire(self, tile: Tile):
         self.hand.remove(tile)
@@ -39,11 +55,14 @@ class Player:
             if t == tile:
                 should_remove.append(t)
                 self.furu[-1].append([t, True])
+
         for t in should_remove:
             self.hand.remove(t)
+
         if self.game:
             # 摸岭上牌
             self.hand.append(self.game.dead_wall.pop(0))
+            # TODO: 应该等待先打一张，再翻宝牌
             # 翻新宝牌
             self.game.dora_num += 1
 
@@ -121,3 +140,10 @@ class Player:
         for t in option:
             self.hand.remove(t)
         self.furu.append((target, option[0], option[1]))
+
+    def print_info(self):
+        print(f"=====================================")
+        print(f"目前 {self.hand.get_syanten(False)} 向听")
+        print(f"手牌: {get_str_list(self.hand)}")
+        print(f"副露: {get_str_list(self.furu)}")
+        print(f"切牌: {get_str_list(self.sute)}")
