@@ -127,9 +127,8 @@ class Game:
             log = ""
             log += f"玩家{cur_player_id}摸{tsumohai}, "
 
-            syanten = player.hand.syanten
-
             reach_junmei = False  # 是否在该巡目立直
+            syanten = player.hand.syanten  # 获取向听数
 
             # 判断是否胡牌
             if syanten == -1:
@@ -140,15 +139,19 @@ class Game:
                     log += "自摸!"
                     print(log)
                     return
-            elif not self.config.last_junmei_reach and len(self.wall) < 4:
-                pass  # 不允许最后一巡立直
-            elif syanten == 0 and len(player.furu) == 0 and not player.reach:
-                if agent.decide_if_reach():
-                    log += "立直!"
-                    reach_junmei = True
-            if player.reach:  # 立直后不允许手切
+
+            if player.reach:
+                # 如果已经立直
+                # 立直后不允许手切
                 sutehai = tsumohai
             else:
+                # TODO: 同时判断是否能够吃、碰、杠、立直
+                if not self.config.last_junmei_reach and len(self.wall) < 4:
+                    pass  # 不允许最后一巡立直
+                elif syanten == 0 and len(player.furu) == 0 and not player.reach:
+                    if agent.decide_if_reach():
+                        log += "立直!"
+                        reach_junmei = True
                 sutehai = agent.decide_sute()
 
             if tsumohai is sutehai:
