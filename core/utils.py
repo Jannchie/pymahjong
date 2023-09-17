@@ -56,6 +56,8 @@ def get_str(x: int):
         raise ValueError("Invalid Tile:", x)
     if get_suit(x) >= 3:
         return ["東", "南", "西", "北", "白", "發", "中"][get_suit(x) - 3]
+    elif get_ver(x) == 3 and get_val(x) == 5:
+        return "赤" + get_val_str(x) + get_suit_str(x)
     else:
         return get_val_str(x) + get_suit_str(x)
 
