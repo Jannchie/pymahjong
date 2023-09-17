@@ -48,6 +48,13 @@ class TestPlayer(unittest.TestCase):
         player.pon(pon_target, 0)
         self.assertEqual(player.hand, Hand.strthand("50p"))
 
+    def test_kan(self):
+        player = Player(hand=Hand.strthand("550p1z"))
+        kan_target = Tile.from_str("5p")
+        self.assertEqual(player.can_kan(kan_target), True)
+        player.kan(kan_target)
+        self.assertEqual(player.hand, Hand.strthand("1z"))
+
 
 if __name__ == "__main__":
     unittest.main()

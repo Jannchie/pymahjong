@@ -25,14 +25,15 @@ class Player:
         return cnt >= 3
 
     def kan(self, tile: Tile) -> bool:
-        if not self.can_kan(tile):
-            return False
+        should_remove = []
         self.furu.append([tile, False])
         for t in self.hand:
+            print(t == tile, t, tile)
             if t == tile:
-                self.hand.remove(t)
+                should_remove.append(t)
                 self.furu[-1].append([t, True])
-        return True
+        for t in should_remove:
+            self.hand.remove(t)
 
     def can_pon(self, tile: Tile) -> bool:
         cnt = 0
