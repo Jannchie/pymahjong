@@ -22,7 +22,7 @@ class TestGame(unittest.TestCase):
         self.assertEqual(len(g.players), 4)
         for i in range(4):
             self.assertEqual(len(g.players[i].hand), 13)
-            self.assertEqual(len(g.players[i].kire), 0)
+            self.assertEqual(len(g.players[i].sute), 0)
             self.assertEqual(len(g.players[i].furu), 0)
         self.assertEqual(g.dora_num, 1)
         g.dora_num = 2
@@ -69,13 +69,14 @@ class TestGame(unittest.TestCase):
         s = "22355667788994m"
         hand = Hand.strthand(s)
         # print("---")
-        # print(hand.strfhand(hand))
+        print(hand.strfhand(hand))
         # print(hand.encode())
         # print(hand.syanten)
         data = hand.suggestion
         # prittify print
-        # for k, v in data.items():
-        #     print(f"打{k}摸 {v}")
+        for k, v in data.items():
+            print(f"打{k}，摸{'、'.join([str(d) for d in v.keys()])}，共 {sum(v.values())} 枚")
+        print(f"共 {data.amount} 枚有效牌")
         self.assertEqual(len(data.keys()), 6)
         end = time.time()
         # print(f"Time: {end - start:.2f}s")

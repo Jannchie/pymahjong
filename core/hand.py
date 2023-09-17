@@ -11,6 +11,15 @@ def get_str_list(x: list[Tile]):
     return " ".join([str(i) for i in x])
 
 
+class Suggestion(defaultdict[Tile, Counter[Tile]]):
+    @property
+    def amount(self):
+        return sum([sum(i.values()) for i in self.values()])
+
+    def __init__(self) -> None:
+        super().__init__(Counter)
+
+
 class Hand(list[Tile]):
     def __str__(self) -> str:
         return get_str_list(self)
@@ -33,35 +42,45 @@ class Hand(list[Tile]):
         return Counter(self)
 
     @property
-    def suggestion(self) -> defaultdict[Tile, set[Tile]]:
-        self[1].code += 1
+    def suggestion(self) -> Suggestion:
+        print(self.counter)
         cur_syanten = self.syanten
-        res = defaultdict(set)
-        hand = Hand(sorted(self[:]))
+        res = Suggestion()
         for i in range(len(self)):
+            cnt = None
             tile = self[i]
-            hand.remove(tile)
+            self.remove(tile)
             for code in ALL_DIFFERENT:
                 t = Tile(code)
-                hand.append(t)
-                hand.sort()
-                if hand.syanten < cur_syanten:
-                    res[tile].add(Tile(t.code))
-                hand.remove(t)
-            hand.append(tile)
+                if self.counter[t] == 4:
+                    # 如果这张牌已经有四张了，则提前退出
+                    continue
+                self.append(t)
+                if self.syanten < cur_syanten:
+                    if cnt is None:
+                        cnt = Counter()
+                        res[tile] = cnt
+                    res[tile][t] = 4 - self.counter[t] + 1
+                self.remove(t)
+            self.append(tile)
         return res
 
-    def list_yukouhai(self) -> defaultdict[Tile, set[Tile]]:
+    def list_yukouhai(self) -> defaultdict[Tile, Counter[Tile]]:
         cur_syanten = self.syanten
+        print(self.counter)
         res = defaultdict(set)
         for i in range(len(self)):
+            cnt = None
             tile = self[i]
             self.remove(tile)
             for code in ALL_DIFFERENT:
                 t = Tile(code)
                 self.append(t)
                 if self.syanten < cur_syanten:
-                    res[tile].add(t)
+                    if cnt is None:
+                        cnt = Counter()
+                        res[tile] = cnt
+                    res[tile][t] += 4 - self.counter[t]
                 self.remove(t)
             self.append(tile)
         return res
@@ -93,14 +112,19 @@ class Hand(list[Tile]):
                     base_code = keys[ch] * 100 if keys[ch] < 3 else keys[ch] * 100 - 100
                     code_multiplier = 10 if keys[ch] < 3 else 100
                     for i in cur:
-                        ans.append(
-                            Tile(
-                                base_code
-                                + i * code_multiplier
-                                + cnt[base_code + i * code_multiplier]
+                        if i == 0:
+                            cnt[base_code + 5 * code_multiplier] += 1
+                            ans.append(Tile(base_code + 5 * code_multiplier + 3))
+                            continue
+                        else:
+                            ans.append(
+                                Tile(
+                                    base_code
+                                    + i * code_multiplier
+                                    + cnt[base_code + i * code_multiplier]
+                                )
                             )
-                        )
-                        cnt[base_code + i * code_multiplier] += 1
+                            cnt[base_code + i * code_multiplier] += 1
                     cur = []
             else:
                 cur.append(int(ch))
@@ -109,7 +133,7 @@ class Hand(list[Tile]):
         return Hand(ans)
 
     @staticmethod
-    def strfhand(hand: Self) -> str:
+    def strfhand(hand: "Hand") -> str:
         """
         将手牌转换为字符串，使用 https://tenhou.net/2/ 的格式
 
@@ -127,23 +151,29 @@ class Hand(list[Tile]):
         }
         for i in range(1, len(hand)):
             if hand[i].suit == prev_suit:
-                if key.get(prev_suit, "z") == "z":
+                if key.get(prev_suit, "z") in "z":
                     cur.append(hand[i].suit - 2)
                 else:
-                    cur.append(hand[i].val)
+                    if hand[i].val == 5 and hand[i].ver == 3:
+                        cur.append(0)
+                    else:
+                        cur.append(hand[i].val)
             else:
                 res += "".join([str(i) for i in cur]) + key.get(prev_suit, "z")
                 if key.get(hand[i].suit, "z") == "z":
                     cur = [hand[i].suit - 2]
                 else:
-                    cur = [hand[i].val]
+                    if hand[i].val == 5 and hand[i].ver == 3:
+                        cur = [0]
+                    else:
+                        cur = [hand[i].val]
                 prev_suit = hand[i].suit
         res += "".join([str(i) for i in cur]) + key.get(prev_suit, "z")
         return res
 
     def encode(self) -> tuple[tuple[int]]:
         """
-        将手牌编码为一个列表
+        将手牌编码为一个序列，用于计算向听数
         时间复杂度 O(log(n))
 
         Returns:

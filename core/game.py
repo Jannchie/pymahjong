@@ -1,21 +1,10 @@
 from random import shuffle
 
+from core.player import Player
+
 from .hand import Hand, get_str_list
 from .tile import Tile
 from .utils import ALL
-
-
-class Player:
-    hand: Hand
-    kire: list[Tile]
-    furu: list[list[Tile]]
-
-    def __init__(
-        self, hand: Hand = [], kire: list[Tile] = [], furu: list[list[Tile]] = []
-    ):
-        self.hand = hand
-        self.kire = kire
-        self.furu = furu
 
 
 class Game:
@@ -47,9 +36,11 @@ class Game:
         print(f"牌山: {get_str_list(self.wall)}")
         print(f"王牌: {get_str_list(self.dead_wall)}")
         for i in range(4):
+            print(f"=====================================")
+            print(f"玩家{i}目前 {self.players[i].hand.syanten} 向听")
             print(f"玩家{i}的手牌: {get_str_list(self.players[i].hand)}")
             print(f"玩家{i}的副露: {get_str_list(self.players[i].furu)}")
-            print(f"玩家{i}的切牌: {get_str_list(self.players[i].kire)}")
+            print(f"玩家{i}的切牌: {get_str_list(self.players[i].sute)}")
 
     def oya(self) -> int:
         """获取庄家

@@ -12,6 +12,7 @@ from .utils import (
     is_valid,
     get_suit,
     get_val,
+    get_ver,
 )
 
 
@@ -20,6 +21,31 @@ class Tile:
         if not is_valid(code):
             raise ValueError("Invalid Tile", code)
         self.code = code
+
+    @staticmethod
+    def is_neighboring(a: "Tile", b: "Tile"):
+        return abs(a.val - b.val) == 1
+
+    @staticmethod
+    def from_str(s: str) -> Self:
+        k = {
+            "m": 0,
+            "p": 1,
+            "s": 2,
+        }
+        key = s[1]
+        val = int(s[0])
+        if key in ["z", "Z"]:
+            return Tile(200 + int(val) * 100)
+        elif val == 0:
+            # 赤宝牌
+            return Tile(k[key] * 100 + 53)
+        else:
+            return Tile(k[key] * 100 + int(val) * 10)
+
+    @staticmethod
+    def get_random():
+        return Tile(ALL[randint(0, len(ALL) - 1)])
 
     @property
     def emoji(self) -> str:
@@ -41,9 +67,9 @@ class Tile:
     def val(self) -> int:
         return get_val(self.code)
 
-    @staticmethod
-    def get_random():
-        return Tile(ALL[randint(0, len(ALL) - 1)])
+    @property
+    def ver(self) -> int:
+        return get_ver(self.code)
 
     def is_same(self, b: Self):
         return is_same(self.code, b.code)
@@ -80,10 +106,9 @@ class Tile:
     def __str__(self) -> str:
         return get_str(self.code)
 
-    def __value__(self) -> int:
-        return self.code // 10
-
-    def __eq__(self, o: object) -> bool:
+    def __eq__(self, o: Self) -> bool:
+        if self.val == 5:
+            return self.code // 10 == o.code // 10 and not (self.ver ^ o.ver)
         return self.code // 10 == o.code // 10
 
     def __hash__(self) -> int:

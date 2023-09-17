@@ -73,4 +73,4 @@ def is_same(a: int, b: int):
 
 
 def is_aka(a: int):
-    return get_val(a) == 3
+    return get_val(a) == 3 and get_suit(a) < 3
