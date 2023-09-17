@@ -1,15 +1,16 @@
+import multiprocessing
 import pickle
 import gzip
 import os
 
+import tqdm
+
+from core.generator import generate_seqs_set
+
 syanten_dict = None
 
-if os.path.exists("./data/syanten.pkl.gz"):
-    print("Loading syanten.pkl.gz")
-    syanten_dict = pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
 
-
-def syanten(seq_tuple: tuple[tuple[int]]) -> int:
+def syanten(seq_tuple: tuple[tuple[int]], use_table=True) -> int:
     """计算向听数
 
     Args:
@@ -18,6 +19,8 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
     Returns:
         int: 向听数, 0 为听牌, -1 为和牌
     """
+    if use_table:
+        load_or_generate_table()
 
     seq = [list(i) for i in seq_tuple]
     nums = 0
@@ -71,6 +74,17 @@ def syanten(seq_tuple: tuple[tuple[int]]) -> int:
         data["atama"] = 1 if has_atama else 0
         pop_menzu(seq, data, nums - 2 if has_atama else nums, has_atama, 0)
     return data["s_min"]
+
+
+def load_or_generate_table():
+    global syanten_dict
+    if os.path.exists("./data/syanten.pkl.gz"):
+        if syanten_dict is None:
+            print("Loading syanten dict")
+            syanten_dict = pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
+    else:
+        print("Cannot found table, Generating syanten dict")
+        syanten_dict = generate_syanten_dict()
 
 
 def get_nums(seq: list[list[int]]) -> int:
@@ -159,8 +173,16 @@ def syanten_other(
     """
     取搭子
     """
+
+    # 如果当前场况已经不可能小于当前计算出的最小向听数，则提前返回
+    if data["dazu"] + (nums - data["atama"] * 2 - data["dazu"]) // 3 >= data["s_min"]:
+        return
+
+    # 已经不可能有更小的向听数了（胡牌），直接返回
     if data["s_min"] == -1:
         return
+
+    # 搭子溢出，要拆搭子
     if data["menzu"] + data["dazu"] > data["k"]:
         return
 
@@ -181,10 +203,38 @@ def syanten_other(
                 syanten_other(seq, data, nums - 2, has_atama)
                 data["dazu"] -= 1
                 seq[i][j] += 2
-    syanten = 0
 
-    syanten = 2 * (data["k"] - data["menzu"]) - data["dazu"] - data["atama"]
-    data["s_min"] = min(syanten, data["s_min"])
+    data["s_min"] = min(
+        2 * (data["k"] - data["menzu"]) - data["dazu"] - data["atama"], data["s_min"]
+    )
     # print(
     #     f'menzu:{data["menzu"]}, dazu:{data["dazu"]}, atama:{data["atama"]} nums:{nums} ${seq}'
     # )
+
+
+def calculate_syanten(seq):
+    return (seq, syanten(seq))
+
+
+def save_dict(syanten_dict: dict):
+    gzip.open("./data/syanten.pkl.gz", "wb").write(pickle.dumps(syanten_dict))
+
+
+def generate_syanten_dict():
+    seqs_data = generate_seqs_set()
+    if os.path.exists("./data/syanten.pkl.gz"):
+        return pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
+    # 使用多进程池
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+
+    # 并行计算syanten
+    results = list(tqdm(pool.imap(calculate_syanten, seqs_data), total=len(seqs_data)))
+
+    # 关闭进程池
+    pool.close()
+    pool.join()
+
+    # 创建syanten字典
+    syanten_dict = {seq: result for seq, result in results}
+    save_dict(syanten_dict)
+    return syanten_dict

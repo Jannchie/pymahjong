@@ -38,7 +38,7 @@ def div_generator(n=13, amount=0, memo=None):
     return ans
 
 
-def generate_sorted_seqs_set() -> set[tuple[tuple[int]]]:
+def generate_seqs_set() -> set[tuple[tuple[int]]]:
     dividers = {n: div_generator(n) for n in range(1, 14)}
     seqs = [x for n in [2, 5, 8, 11, 14] for x in seq_generator(n)]
     ans = set()

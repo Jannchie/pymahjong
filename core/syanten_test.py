@@ -33,6 +33,16 @@ class TestSyanten(unittest.TestCase):
             ("47m1p1467889s177z9p", 4),
             ("14m4555p12456s13z5m", 2),
             ("145m4555p12456s3z6m", 1),
+            ("12345m", 0),
+            ("1234m", 0),
+            ("123m", 0),
+            ("12m", 0),
+            ("1m", 0),
+            ("2222m", 0),
+            ("5122m", 1),
+            ("2223m", 0),
+            ("11234566678891p", 0),
+            ("11233446899993m", 1),
         )
         for input_data, expected_result in test_cases_2:
             self.assertEqual(Hand.strthand(input_data).syanten, expected_result)

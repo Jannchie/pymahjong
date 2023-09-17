@@ -33,7 +33,6 @@ class TestGame(unittest.TestCase):
         hand = Game.get_random_hand(14)
         seq = hand.encode()
         syanten = hand.get_syanten()
-        print(hand.to_str())
         self.assertEqual(syanten, 4)
         self.assertEqual(
             seq,
@@ -55,37 +54,29 @@ class TestGame(unittest.TestCase):
         hand = Game.get_random_hand()
         self.assertEqual(len(hand), 13)
 
-    def test_hand_str_format(self):
-        random.seed(217321)
-        for i in range(15):
-            hand = Game.get_random_hand(14)
-            print(hand.to_str())
-            print(hand.get_syanten(), hand)
-            print(hand.encode())
-
     def test_hand_str_format2(self):
         s = "1225889m1356p15s3z"
         self.assertEqual(s, Hand.strthand(s).to_str())
         s = "125889m1356p15s3z9m"
         self.assertEqual("125889m1356p15s3z9m", Hand.strthand(s).to_str())
-        print(Hand.strthand("1226m13447p357s2z4z").encode())
+        # print(Hand.strthand("1226m13447p357s2z4z").encode())
 
     def test_suggestion(self):
         # calculate time
         start = time.time()
-        s = "112288m1356p15s3z3m"
+        s = "22355667788994m"
         hand = Hand.strthand(s)
-        print("---")
-        print(hand.strfhand(hand))
-        print(hand.encode())
-        print(hand.syanten)
+        # print("---")
+        # print(hand.strfhand(hand))
+        # print(hand.encode())
+        # print(hand.syanten)
         data = hand.suggestion
-        ## prittify print
-        for k, v in data.items():
-            print(f"打{k}摸 {v}")
-        print("---")
+        # prittify print
+        # for k, v in data.items():
+        #     print(f"打{k}摸 {v}")
+        self.assertEqual(len(data.keys()), 6)
         end = time.time()
-        print(f"Time: {end - start:.2f}s")
+        # print(f"Time: {end - start:.2f}s")
 
 
 if __name__ == "__main__":
