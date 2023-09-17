@@ -1,6 +1,10 @@
+from __future__ import annotations
 from .hand import Hand
 from .tile import Tile
-from .game import Game
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .game import Game
 
 
 class Player:
@@ -9,7 +13,7 @@ class Player:
         hand: Hand = [],
         sute: list[Tile] = [],
         furu: list[tuple[tuple[Tile, bool]]] = [],
-        game: "Game" = None,
+        game: Game = None,
     ):
         self.hand = hand
         self.sute = sute
@@ -37,6 +41,11 @@ class Player:
                 self.furu[-1].append([t, True])
         for t in should_remove:
             self.hand.remove(t)
+        if self.game:
+            # 摸岭上牌
+            self.hand.append(self.game.dead_wall.pop(0))
+            # 翻新宝牌
+            self.game.dora_num += 1
 
     def can_pon(self, tile: Tile) -> bool:
         cnt = 0

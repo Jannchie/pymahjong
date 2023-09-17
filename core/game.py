@@ -49,6 +49,14 @@ class Game:
         """
         return self.kyoku % 4
 
+    @property
+    def dora_indicator(self) -> list[Tile]:
+        """宝牌指示牌列表
+
+        Returns:
+            list[Tile]: 宝牌指示牌列表
+        """
+
     def list_dora_indicator(self) -> list[Tile]:
         """获取宝牌指示牌
 

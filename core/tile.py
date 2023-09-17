@@ -93,7 +93,7 @@ class Tile:
             if self.suit == 9:
                 return [Tile(300 + i) for i in range(4)]
             else:
-                return [Tile(self.code + 100 + i) for i in range(4)]
+                return [Tile(self.code // 10 * 10 + 100 + i) for i in range(4)]
         else:
             val = self.val
             if val == 9:  # 如果是字牌，7 的下一个是 1，否则 9 的下一个是 1

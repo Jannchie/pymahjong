@@ -27,7 +27,9 @@ class TestGame(unittest.TestCase):
         g.dora_num = 2
         self.assertEqual(g.list_dora_indicator(), [g.dead_wall[0], g.dead_wall[2]])
         self.assertEqual(g.list_uradora_indicator(), [g.dead_wall[1], g.dead_wall[3]])
-        # g.print_info()
+        print(g.wall)
+        print([d.code for d in g.dead_wall])
+        g.print_info()
 
     def test_calculate(self):
         random.seed(47)
