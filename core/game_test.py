@@ -35,7 +35,7 @@ class TestGame(unittest.TestCase):
         random.seed(47)
         hand = Game.get_random_hand(14)
         seq = hand.encode()
-        syanten = hand.get_syanten()
+        syanten = hand.get_syanten(False)
         self.assertEqual(syanten, 4)
         self.assertEqual(
             seq,
@@ -73,7 +73,7 @@ class TestGame(unittest.TestCase):
         print(hand.strfhand(hand))
         # print(hand.encode())
         # print(hand.syanten)
-        data = hand.suggestion
+        data = hand.get_suggestion(False)
         # prittify print
         for k, v in data.items():
             print(f"打{k}，摸{'、'.join([str(d) for d in v.keys()])}，共 {sum(v.values())} 枚")

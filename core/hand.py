@@ -28,8 +28,8 @@ class Hand(list[Tile]):
     def syanten(self) -> int:
         return self.get_syanten()
 
-    def get_syanten(self) -> int:
-        return syanten(self.encode())
+    def get_syanten(self, use_table=True) -> int:
+        return syanten(self.encode(), use_table=use_table)
 
     def to_str(self) -> str:
         return Hand.strfhand(self)
@@ -41,10 +41,8 @@ class Hand(list[Tile]):
     def counter(self) -> Counter:
         return Counter(self)
 
-    @property
-    def suggestion(self) -> Suggestion:
-        print(self.counter)
-        cur_syanten = self.syanten
+    def get_suggestion(self, use_table=True) -> Suggestion:
+        cur_syanten = self.get_syanten(use_table=use_table)
         res = Suggestion()
         for i in range(len(self)):
             cnt = None
@@ -56,7 +54,7 @@ class Hand(list[Tile]):
                     # 如果这张牌已经有四张了，则提前退出
                     continue
                 self.append(t)
-                if self.syanten < cur_syanten:
+                if self.get_syanten(use_table) < cur_syanten:
                     if cnt is None:
                         cnt = Counter()
                         res[tile] = cnt
@@ -64,6 +62,10 @@ class Hand(list[Tile]):
                 self.remove(t)
             self.append(tile)
         return res
+
+    @property
+    def suggestion(self) -> Suggestion:
+        return self.get_suggestion()
 
     def list_yukouhai(self) -> defaultdict[Tile, Counter[Tile]]:
         cur_syanten = self.syanten

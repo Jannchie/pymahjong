@@ -25,7 +25,7 @@ class TestSyanten(unittest.TestCase):
             (((1,), (1, 1, 1, 1, 1), (2,), (1,), (1, 2, 1), (1,), (2,), (2,)), 2),
         ]
         for input_data, expected_result in test_cases_1:
-            self.assertEqual(syanten(input_data), expected_result)
+            self.assertEqual(syanten(input_data, False), expected_result)
         test_cases_2 = (
             ("2222m3333p4444s1z2z", 2),
             ("2222m3333p4444s11z", 1),
@@ -44,7 +44,7 @@ class TestSyanten(unittest.TestCase):
             ("11233446899993m", 1),
         )
         for input_data, expected_result in test_cases_2:
-            self.assertEqual(Hand.strthand(input_data).syanten, expected_result)
+            self.assertEqual(Hand.strthand(input_data).get_syanten(False), expected_result)
 
 
 if __name__ == "__main__":

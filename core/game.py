@@ -36,7 +36,7 @@ class Game:
         print(f"王牌: {get_str_list(self.dead_wall)}")
         for i in range(4):
             print(f"=====================================")
-            print(f"玩家{i}目前 {self.players[i].hand.syanten} 向听")
+            print(f"玩家{i}目前 {self.players[i].hand.get_syanten(False)} 向听")
             print(f"玩家{i}的手牌: {get_str_list(self.players[i].hand)}")
             print(f"玩家{i}的副露: {get_str_list(self.players[i].furu)}")
             print(f"玩家{i}的切牌: {get_str_list(self.players[i].sute)}")
