@@ -81,13 +81,13 @@ class Tile:
         return get_str(self.code)
 
     def __value__(self) -> int:
-        return self.code
+        return self.code // 10
 
     def __eq__(self, o: object) -> bool:
-        return self.code == o.code
+        return self.code // 10 == o.code // 10
 
     def __hash__(self) -> int:
-        return self.code
+        return self.code // 10
 
     def __repr__(self) -> str:
         return f'Tile("{self}")'

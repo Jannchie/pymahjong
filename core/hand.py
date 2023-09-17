@@ -29,7 +29,12 @@ class Hand(list[Tile]):
         return Hand(self.copy())
 
     @property
+    def counter(self) -> Counter:
+        return Counter(self)
+
+    @property
     def suggestion(self) -> defaultdict[Tile, set[Tile]]:
+        self[1].code += 1
         cur_syanten = self.syanten
         res = defaultdict(set)
         hand = Hand(sorted(self[:]))
@@ -87,15 +92,14 @@ class Hand(list[Tile]):
                 if cur:
                     base_code = keys[ch] * 100 if keys[ch] < 3 else keys[ch] * 100 - 100
                     code_multiplier = 10 if keys[ch] < 3 else 100
-                    ans += [
-                        Tile(
-                            base_code
-                            + i * code_multiplier
-                            + cnt[base_code + i * code_multiplier]
-                        )
-                        for i in cur
-                    ]
                     for i in cur:
+                        ans.append(
+                            Tile(
+                                base_code
+                                + i * code_multiplier
+                                + cnt[base_code + i * code_multiplier]
+                            )
+                        )
                         cnt[base_code + i * code_multiplier] += 1
                     cur = []
             else:
