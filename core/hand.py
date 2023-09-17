@@ -42,6 +42,33 @@ class Hand(list[Tile]):
     def copy(self) -> Self:
         return Hand(self.copy())
 
+    def get_one_suggestion(self, use_table=True, idx: int = 0) -> Suggestion:
+        cur_syanten = self.get_syanten(use_table=use_table)
+        res = Suggestion()
+        n = -1
+        for i in range(len(self)):
+            cnt = None
+            tile = self[i]
+            self.kire(tile)
+            for code in ALL_DIFFERENT:
+                t = Tile(code)
+                if self.counter[t] == 4:
+                    # 如果这张牌已经有四张了，则提前退出
+                    continue
+                self.append(t)
+                if self.get_syanten(use_table) < cur_syanten:
+                    if cnt is None:
+                        cnt = Counter()
+                        n += 1
+                        if n == idx:
+                            res[tile] = cnt
+                            self.pop()
+                            self.insert(i, tile)
+                            return res
+                self.pop()
+            self.insert(i, tile)
+        return res
+
     def get_suggestion(self, use_table=True) -> Suggestion:
         cur_syanten = self.get_syanten(use_table=use_table)
         res = Suggestion()

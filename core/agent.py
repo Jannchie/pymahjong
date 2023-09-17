@@ -12,7 +12,7 @@ class Agent:
         self.player = player
 
     def decide_sute(self: Self) -> Tile:
-        tile, _ = next(iter(self.player.hand.suggestions.items()))
+        tile, _ = next(iter(self.player.hand.get_one_suggestion().items()))
         return tile
 
     def decide_if_reach(self) -> bool:
