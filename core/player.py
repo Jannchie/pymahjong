@@ -1,10 +1,18 @@
 from __future__ import annotations
+import enum
 from typing import TYPE_CHECKING
 from .hand import Hand, get_str_list
 from .tile import Tile
 
 if TYPE_CHECKING:
     from .game import Game
+
+
+class FuruType(enum.Enum):
+    PON = "PON"
+    CHI = "CHI"
+    KAN = "KAN"
+    ANKAN = "ANKAN"
 
 
 class Sute:
@@ -17,9 +25,10 @@ class Sute:
 
 
 class Furu:
-    def __init__(self, tiles: list[Tile], sute: Tile):
+    def __init__(self, tiles: list[Tile], sute: Tile, type: FuruType):
         self.tiles = tiles
         self.sute = sute
+        self.type = type
 
 
 class Player:
@@ -47,17 +56,39 @@ class Player:
                 cnt += 1
         return cnt >= 3
 
+    def can_ankan(self) -> Tile:
+        for t in self.hand.counter:
+            if self.hand.counter[t] >= 4:
+                return t
+        return None
+
+    def can_add_kan(self, target: Tile) -> Furu | None:
+        for f in self.furu:
+            if f.type == FuruType.PON and f.tiles[0] == target:
+                return f
+        return None
+
+    def ankan(self, tile: Tile):
+        if self.hand.counter[tile] == 3:
+            should_remove = []
+            for t in self.hand:
+                should_remove.append(t)
+            self.furu.append(Furu([tile] + should_remove, tile, FuruType.ANKAN))
+            for t in should_remove:
+                self.hand.remove(t)
+        else:
+            raise Exception("手牌中没有四张这张牌")
+
     def kan(self, tile: Tile) -> bool:
         should_remove = []
-        self.furu.append([tile, False])
+        self.furu.append(Furu([tile], tile, FuruType.KAN))
         for t in self.hand:
-            print(t == tile, t, tile)
             if t == tile:
                 should_remove.append(t)
-                self.furu[-1].append([t, True])
 
         for t in should_remove:
             self.hand.remove(t)
+        self.furu[-1].tiles += should_remove
 
         if self.game:
             # 摸岭上牌
@@ -138,8 +169,8 @@ class Player:
         options = self.chi_options(target)
         option = options[option_idx]
         for t in option:
-            self.hand.remove(t)
-        self.furu.append((target, option[0], option[1]))
+            self.hand.kire(t)
+        self.furu.append(Furu([target, option[0], option[1]], target, FuruType.CHI))
 
     def print_info(self):
         print(f"=====================================")
@@ -147,3 +178,11 @@ class Player:
         print(f"手牌: {get_str_list(self.hand)}")
         print(f"副露: {get_str_list(self.furu)}")
         print(f"切牌: {get_str_list(self.sute)}")
+
+    def has_kan_chi_pon(self, player):
+        has_kan_chi_pon = False
+        for f in player.furu:
+            if f.type in (FuruType.KAN, FuruType.PON, FuruType.CHI):
+                has_kan_chi_pon = True
+                break
+        return has_kan_chi_pon

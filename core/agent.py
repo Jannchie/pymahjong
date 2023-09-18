@@ -1,8 +1,23 @@
-from typing import Self
-
-from .hand import Hand
+from __future__ import annotations
+from typing import Self, TYPE_CHECKING
 from .tile import Tile
 from .player import Player
+
+if TYPE_CHECKING:
+    from .game import OptionsInTurn
+
+
+class PlayerInTurnActionType:
+    REACH = "reach"
+    TSUMO = "tsumo"
+    ANKAN = "ankan"
+    ADD_KANG = "add_kan"
+    SUTE = "sute"
+
+
+class PlayerInTurnAction:
+    type: PlayerInTurnActionType
+    tile: Tile | None = None
 
 
 class Agent:
@@ -33,6 +48,22 @@ class Agent:
             bool: 是否胡牌
         """
         return True
+
+    def decide_turn_action(self, options: OptionsInTurn) -> PlayerInTurnAction:
+        action = PlayerInTurnAction()
+        if options.reach:
+            action.type = PlayerInTurnActionType.REACH
+            action.tile = self.decide_sute()
+        elif options.tsumo:
+            action.type = PlayerInTurnActionType.TSUMO
+        elif options.add_kan:
+            action.type = PlayerInTurnActionType.ADD_KANG
+        elif options.ankan:
+            action.type = PlayerInTurnActionType.ANKAN
+        else:
+            action.type = PlayerInTurnActionType.SUTE
+            action.tile = self.decide_sute()
+        return action
 
     def __repr__(self) -> str:
         return self.name

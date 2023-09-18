@@ -1,13 +1,12 @@
 from __future__ import annotations
-import random
 from typing import TYPE_CHECKING
 from random import shuffle
 
-from .player import Player, Sute
+from .player import Furu, FuruType, Player, Sute
 from .hand import Hand, get_str_list
 from .tile import Tile
 from .utils import ALL
-from .agent import Agent
+from .agent import Agent, PlayerInTurnActionType
 
 if TYPE_CHECKING:
     from .agent import Agent
@@ -15,6 +14,20 @@ if TYPE_CHECKING:
 
 class GameConfig:
     last_junmei_reach = False
+
+
+class OptionsInTurn:
+    tsumo = False
+    add_kan: Furu | None = None
+    ankan: Tile | None = None
+    reach: [Tile] = []
+
+
+class ActionsOutOfTurn:
+    chi = ()
+    pon = ()
+    kan = ()
+    ron = False
 
 
 class Game:
@@ -126,40 +139,111 @@ class Game:
             agent.set_player(self.players[idx])
         while self.wall:
             self.junmei = t // 4 + 1
-            cur_player_id = t % 4
-            agent = self.agents[cur_player_id]
-            player = self.players[cur_player_id]
-            tsumohai = self.tsumo(cur_player_id)
+            cur_player_idx = t % 4
+            agent = self.agents[cur_player_idx]
+            player = self.players[cur_player_idx]
+            tsumohai = self.tsumo(cur_player_idx)
 
-            log = ""
-            log += f"玩家<{agent}>摸{tsumohai}, "
+            log = f"玩家<{agent}>摸{tsumohai}, "
 
-            reach_junmei = False  # 是否在该巡目立直
-            syanten = player.hand.syanten  # 获取向听数
+            if self.junmei == 1:
+                # TODO: 检查是否九种九牌
+                # TODO: 检查是否四风连打
+                pass
 
-            # 判断是否胡牌
-            if syanten == -1:
-                # 询问是否胡牌
-                if agent.decide_if_ron():
-                    # 胡牌
-                    # TODO: 计算番数、点棒流转
+            reach_in_this_junmei = False  # 是否在该巡目立直
+            syanten = player.hand.syanten  # 获取当前向听数
+
+            # # 判断是否胡牌
+            # if syanten == -1:
+            #     # 询问是否胡牌
+            #     if agent.decide_if_ron():
+            #         # TODO: 计算番数、点棒流转
+            #         log += "自摸!"
+            #         print(log)
+            #         return
+
+            if player.reach:
+                # 如果已经立直，可以暗杠或加杠
+                # 立直后只有在不改变听牌的场合下才可以开暗杠
+                # 立直之后，如果摸到原本手牌中暗刻的第四张牌，可以选择进行暗杠。
+                # 如果立直时手牌中三张相同的牌不作为暗刻，暗杠的行为相当于改变了立直后的牌型，属于犯规行为。
+                # 此外，也有不承认立直后的一切暗杠行为的规则。
+                # 如果已经立直
+                actions = OptionsInTurn()
+
+                # TODO：判断是否自摸
+                if syanten == -1:
                     log += "自摸!"
                     print(log)
                     return
+                # TODO: 判断能否立直后暗杠
+                actions.ankan = player.can_ankan()
 
-            if player.reach:
-                # 如果已经立直
                 # 立直后不允许手切
                 sutehai = tsumohai
             else:
-                # TODO: 同时判断是否能够吃、碰、杠、立直
-                if not self.config.last_junmei_reach and len(self.wall) < 4:
-                    pass  # 不允许最后一巡立直
-                elif syanten == 0 and len(player.furu) == 0 and not player.reach:
-                    if agent.decide_if_reach():
-                        log += "立直!"
-                        reach_junmei = True
-                sutehai = agent.decide_sute()
+                # TODO: 自家，需要同时判断是否能立直、自摸、暗杠或加杠。
+                # 吃碰杠后需要打出一张牌
+                # 杠完还需要翻新宝牌指示牌和摸岭上牌
+
+                actions = OptionsInTurn()
+
+                # 判断能否暗杠
+                actions.ankan = player.can_ankan()
+
+                # 判断能否加杠
+                actions.add_kan = player.can_add_kan(tsumohai)
+
+                # 判断是否能自摸
+                if syanten == -1:
+                    actions.tsumo = True
+
+                # 判断是否能立直
+                # 1. 如果不是最后一巡
+                # 2. 当前处于听牌状态
+                # 3. 没有明杠、吃、碰。
+                # TODO: 4. 有 1000 点棒
+                has_kan_chi_pon = self.has_kan_chi_pon(player)
+
+                if (
+                    syanten == 0
+                    and (len(self.wall) >= 4 or self.config.last_junmei_reach)
+                    and not has_kan_chi_pon
+                ):
+                    actions.reach = True
+
+                # sutehai = agent.decide_sute()
+
+            # TODO：如果开启包牌规则，杠后自摸，被杠人支付点数
+            # TODO: 杠行为后，需要判断能否抢杠
+
+            action = agent.decide_turn_action(actions)
+
+            if action.type == PlayerInTurnActionType.REACH:
+                sutehai = action.tile
+                reach_in_this_junmei = True
+            elif action.type == PlayerInTurnActionType.TSUMO:
+                # 判断是否胡牌
+                if syanten == -1:
+                    # 询问是否胡牌
+                    if agent.decide_if_ron():
+                        # TODO: 计算番数、点棒流转
+                        log += "自摸!"
+                        print(log)
+                        return
+                else:
+                    raise Exception("没有胡牌")
+            elif action.type == PlayerInTurnActionType.ADD_KANG:
+                # TODO: 进行加杠
+                pass
+            elif action.type == PlayerInTurnActionType.ANKAN:
+                # TODO：进行杠
+                pass
+            elif action.type == PlayerInTurnActionType.SUTE:
+                sutehai = action.tile
+            else:
+                raise Exception("未知的行为")
 
             if tsumohai is sutehai:
                 log += f"摸切{sutehai}, "
@@ -167,10 +251,15 @@ class Game:
             else:
                 log += f"手切{sutehai}, "
                 player.sute.append(Sute(sutehai, False))
+
+            if reach_in_this_junmei:
+                log += "宣布立直！"
+
             player.hand.kire(sutehai)
 
+            # TODO: 所有别家，同时判断是否能够吃、碰、杠、荣胡。
             for i in range(len(self.players)):
-                if i == cur_player_id:
+                if i == cur_player_idx:
                     continue
                 h = Hand(self.players[i].hand)
                 h.append(sutehai)
@@ -179,10 +268,22 @@ class Game:
                     # TODO: 计算番数、点棒流转
                     print(log)
                     return
-            if reach_junmei:
+            # TODO：需要判断各个玩家操作的优先级，并执行最高优先级的操作。
+            # TODO：一般而言，荣胡>杠=碰>吃，可能有不同规则。
+
+            if reach_in_this_junmei:
                 player.reach = True
                 # TODO: 立直成功，支付 1000 点棒
-                log += "立直成功！支付 1000 点棒!"
+                log += "无人胡牌，立直成功！支付 1000 点棒!"
+
             print(log)
             t += 1
-        print("流局")
+        print("荒牌流局")
+
+    def has_kan_chi_pon(self, player):
+        has_kan_chi_pon = False
+        for f in player.furu:
+            if f.type in (FuruType.KAN, FuruType.PON, FuruType.CHI):
+                has_kan_chi_pon = True
+                break
+        return has_kan_chi_pon
