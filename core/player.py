@@ -23,12 +23,21 @@ class Sute:
     def __repr__(self) -> str:
         return f"<{'摸' if self.is_tsumogiri else '手'}切{self.tile}>"
 
+    def __str__(self) -> str:
+        return get_str_list(self)
+
 
 class Furu:
     def __init__(self, tiles: list[Tile], sute: Tile, type: FuruType):
         self.tiles = tiles
         self.sute = sute
         self.type = type
+
+    def __str__(self) -> str:
+        return get_str_list(self)
+
+    def __repr__(self) -> str:
+        return f"<{self.tiles}>"
 
 
 class Player:
@@ -56,11 +65,25 @@ class Player:
                 cnt += 1
         return cnt >= 3
 
-    def can_ankan(self) -> Tile:
+    def ankan_options(self) -> tuple[Tile]:
+        res = []
         for t in self.hand.counter:
-            if self.hand.counter[t] >= 4:
-                return t
-        return None
+            if self.hand.counter[t] == 4:
+                res.append(t)
+
+        if self.reach:
+            suggest = self.hand.get_suggestion()
+            for option in res:
+                hand = Hand(self.hand[:])
+                for t in hand:
+                    # 尝试取出暗杠牌
+                    if t == option:
+                        hand.remove(t)
+                new_suggest = hand.get_suggestion()
+                if new_suggest != suggest:
+                    # 如果暗杠后的手牌建议不同，则不允许暗杠
+                    res.remove(option)
+        return tuple(res)
 
     def can_add_kan(self, target: Tile) -> Furu | None:
         for f in self.furu:
@@ -68,16 +91,22 @@ class Player:
                 return f
         return None
 
+    def add_kan(self, furu: Furu, tile: Tile):
+        furu.tiles.append(tile)
+        furu.type = FuruType.KAN
+        self.hand.kire(tile)
+
+    def reach_options(self) -> tuple[Tile]:
+        if self.reach:
+            return tuple()
+
     def ankan(self, tile: Tile):
-        if self.hand.counter[tile] == 3:
-            should_remove = []
-            for t in self.hand:
-                should_remove.append(t)
-            self.furu.append(Furu([tile] + should_remove, tile, FuruType.ANKAN))
-            for t in should_remove:
-                self.hand.remove(t)
-        else:
-            raise Exception("手牌中没有四张这张牌")
+        should_remove = []
+        for t in self.hand:
+            should_remove.append(t)
+        self.furu.append(Furu([tile] + should_remove, tile, FuruType.ANKAN))
+        for t in should_remove:
+            self.hand.remove(t)
 
     def kan(self, tile: Tile) -> bool:
         should_remove = []
@@ -104,24 +133,6 @@ class Player:
                 cnt += 1
         return cnt >= 2
 
-    def pon_options(self, tile: Tile) -> tuple((Tile, Tile)):
-        tmp = []
-        for t in self.hand:
-            if t == tile:
-                tmp.append(t)
-        opts = dict()
-        for i in range(len(tmp)):
-            for j in range(i + 1, len(tmp)):
-                peer = (tmp[i], tmp[j])
-                opts[str(peer)] = peer
-        return tuple(opts.values())
-
-    def pon(self, tile: Tile, option_idx: int):
-        options = self.pon_options(tile)
-        option = options[option_idx]
-        self.hand.remove(tile)
-        self.furu.append((tile, option[0], option[1]))
-
     def can_chi(self, tile: Tile) -> bool:
         test = [0, 0, 0, 0]
         for t in self.hand:
@@ -145,32 +156,15 @@ class Player:
                     return True
         return False
 
-    def chi_options(self, tile: Tile) -> tuple((Tile, Tile)):
-        test = [[], [], [], []]
-        for t in self.hand:
-            if t.val == tile.val - 2:
-                test[0].append(t)
-            elif t.val == tile.val - 1:
-                test[1].append(t)
-            elif t.val == tile.val + 1:
-                test[2].append(t)
-            elif t.val == tile.val + 2:
-                test[3].append(t)
-        opts = dict()
-        for i in range(3):
-            j = i + 1
-            for a in test[i]:
-                for b in test[j]:
-                    peer = (a, b)
-                    opts[str(peer)] = peer
-        return tuple(opts.values())
+    def pon(self, target: Tile, hand: tuple[Tile]):
+        self.hand.kire(hand[0])
+        self.hand.kire(hand[1])
+        self.furu.append(Furu([target, hand[0], hand[1]], target, FuruType.PON))
 
-    def chi(self, target: Tile, option_idx: int) -> tuple((Tile, Tile)):
-        options = self.chi_options(target)
-        option = options[option_idx]
-        for t in option:
-            self.hand.kire(t)
-        self.furu.append(Furu([target, option[0], option[1]], target, FuruType.CHI))
+    def chi(self, target: Tile, hand: tuple[Tile]):
+        self.hand.kire(hand[0])
+        self.hand.kire(hand[1])
+        self.furu.append(Furu([target, hand[0], hand[1]], target, FuruType.CHI))
 
     def print_info(self):
         print(f"=====================================")

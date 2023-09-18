@@ -23,7 +23,7 @@ class TestPlayer(unittest.TestCase):
 
     def test_chi(self):
         player = Player(hand=Hand.strthand("3234556m89s11z"))
-        chi_options = player.chi_options(Tile.from_str("3m"))
+        chi_options = player.hand.chi_options(Tile.from_str("3m"))
         self.assertEqual(
             chi_options,
             (
@@ -31,13 +31,13 @@ class TestPlayer(unittest.TestCase):
                 (Tile.from_str("4m"), Tile.from_str("5m")),
             ),
         )
-        player.chi(Tile.from_str("3m"), 1)
+        player.chi(Tile.from_str("3m"), (Tile.from_str("4m"), Tile.from_str("5m")))
         self.assertEqual(player.hand, Hand.strthand("32356m89s11z"))
 
     def test_pon(self):
         player = Player(hand=Hand.strthand("550p"))
         pon_target = Tile.from_str("5p")
-        pon_options = player.pon_options(pon_target)
+        pon_options = player.hand.pon_options(pon_target)
         self.assertEqual(
             pon_options,
             (
@@ -45,7 +45,7 @@ class TestPlayer(unittest.TestCase):
                 (Tile.from_str("5p"), Tile.from_str("0p")),
             ),
         )
-        player.pon(pon_target, 0)
+        player.pon(pon_target, (Tile.from_str("5p"), Tile.from_str("5p")))
         self.assertEqual(player.hand, Hand.strthand("50p"))
 
     def test_kan(self):

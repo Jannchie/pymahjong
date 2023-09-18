@@ -97,7 +97,6 @@ class Hand(list[Tile]):
 
     def list_yukouhai(self) -> defaultdict[Tile, Counter[Tile]]:
         cur_syanten = self.syanten
-        print(self.counter)
         res = defaultdict(set)
         for i in range(len(self)):
             cnt = None
@@ -245,3 +244,48 @@ class Hand(list[Tile]):
             if self[i].code == tile.code:
                 self.pop(i)
                 return
+
+    def pon_options(self, tile: Tile) -> tuple((Tile, Tile)):
+        tmp = []
+        for t in self:
+            if t == tile:
+                tmp.append(t)
+        if len(tmp) < 2:
+            return tuple()
+        opts = dict()
+        for i in range(len(tmp)):
+            for j in range(i + 1, len(tmp)):
+                peer = (tmp[i], tmp[j])
+                opts[str(peer)] = peer
+        return tuple(opts.values())
+
+    def chi_options(self, tile: Tile) -> tuple[tuple[Tile, Tile]]:
+        test = [[], [], [], []]
+        for t in self:
+            if t.suit != tile.suit:
+                continue
+            if t.val == tile.val - 2:
+                test[0].append(t)
+            elif t.val == tile.val - 1:
+                test[1].append(t)
+            elif t.val == tile.val + 1:
+                test[2].append(t)
+            elif t.val == tile.val + 2:
+                test[3].append(t)
+        opts = dict()
+        for i in range(3):
+            j = i + 1
+            for a in test[i]:
+                for b in test[j]:
+                    peer = (a, b)
+                    opts[str(peer)] = peer
+        return tuple(opts.values())
+
+    def kan_options(self, tile: Tile) -> tuple[tuple[Tile, Tile, Tile]]:
+        tmp = []
+        for t in self:
+            if t == tile:
+                tmp.append(t)
+        if len(tmp) < 3:
+            return tuple()
+        return tuple([(tmp[i], tmp[i + 1], tmp[i + 2]) for i in range(len(tmp) - 2)])

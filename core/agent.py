@@ -1,13 +1,25 @@
 from __future__ import annotations
 from typing import Self, TYPE_CHECKING
 from .tile import Tile
-from .player import Player
-
-if TYPE_CHECKING:
-    from .game import OptionsInTurn
+from .player import Furu, Player
 
 
-class PlayerInTurnActionType:
+class OptionsInTurn:
+    tsumo = False  # 如果可以自摸，则为 True
+    add_kan: Furu | None = None  # 如果可以加杠，提供被加杠的副露
+    ankan: tuple[Tile] = ()  # 如果可以暗杠，提供暗杠选项
+    reach: tuple[Tile] = ()  # 如果可以立直，提供立直选项
+    tegiri = False  # 如果可以手切，则为 True
+
+
+class OptionsOutOfTurn:
+    chi = ()
+    pon = ()
+    kan = ()
+    ron = False
+
+
+class InTurnActionType:
     REACH = "reach"
     TSUMO = "tsumo"
     ANKAN = "ankan"
@@ -15,9 +27,25 @@ class PlayerInTurnActionType:
     SUTE = "sute"
 
 
-class PlayerInTurnAction:
-    type: PlayerInTurnActionType
-    tile: Tile | None = None
+class OutofTurnActionType:
+    RON = "ron"
+    CHI = "chi"
+    PON = "pon"
+    KAN = "kan"
+    pass
+
+
+class InTurnAction:
+    type: InTurnActionType
+    choice: int = 0
+
+
+class OutOfTurnAction:
+    def __init__(self, agent: Agent) -> None:
+        self.agent = agent
+
+    type: OutofTurnActionType
+    choice: int = 0
 
 
 class Agent:
@@ -29,40 +57,44 @@ class Agent:
     def set_player(self, player: Player):
         self.player = player
 
-    def decide_sute(self: Self) -> Tile:
-        tile, _ = next(iter(self.player.hand.get_one_suggestion().items()))
-        return tile
+    def decide_in_turn(self, options: OptionsInTurn) -> InTurnAction:
+        """决定出牌行为，默认行为：能立则立，能自摸则自摸，能加杠则加杠，能暗杠则暗杠，否则获取出牌建议，打出建议中的第一张牌。
 
-    def decide_if_reach(self) -> bool:
-        """决定是否立直，默认为听牌即立。
-
-        Returns:
-            bool: 是否立直
-        """
-        return True
-
-    def decide_if_ron(self) -> bool:
-        """是否胡牌
+        Args:
+            options (OptionsInTurn): 当前可选操作
 
         Returns:
-            bool: 是否胡牌
+            PlayerInTurnAction: 玩家出牌行为
         """
-        return True
-
-    def decide_turn_action(self, options: OptionsInTurn) -> PlayerInTurnAction:
-        action = PlayerInTurnAction()
+        action = InTurnAction()
         if options.reach:
-            action.type = PlayerInTurnActionType.REACH
-            action.tile = self.decide_sute()
+            action.type = InTurnActionType.REACH
         elif options.tsumo:
-            action.type = PlayerInTurnActionType.TSUMO
+            action.type = InTurnActionType.TSUMO
         elif options.add_kan:
-            action.type = PlayerInTurnActionType.ADD_KANG
+            action.type = InTurnActionType.ADD_KANG
         elif options.ankan:
-            action.type = PlayerInTurnActionType.ANKAN
+            action.type = InTurnActionType.ANKAN
         else:
-            action.type = PlayerInTurnActionType.SUTE
-            action.tile = self.decide_sute()
+            action.type = InTurnActionType.SUTE
+            tile, _ = next(iter(self.player.hand.get_one_suggestion().items()))
+            action.choice = self.player.hand.index(tile)
+        return action
+
+    async def decide_out_of_turn(
+        self, options: OptionsOutOfTurn
+    ) -> OutOfTurnAction | None:
+        action = OutOfTurnAction(self)
+        if options.chi:
+            action.type = OutofTurnActionType.CHI
+        elif options.pon:
+            action.type = OutofTurnActionType.PON
+        elif options.kan:
+            action.type = OutofTurnActionType.KAN
+        elif options.ron:
+            action.type = OutofTurnActionType.RON
+        else:
+            return None
         return action
 
     def __repr__(self) -> str:
