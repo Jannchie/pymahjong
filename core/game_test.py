@@ -75,7 +75,7 @@ class TestGame(unittest.TestCase):
         #     print(f"打{k}，摸{'、'.join([str(d) for d in v.keys()])}，共 {sum(v.values())} 枚")
         # print(f"共 {data.amount} 枚有效牌")
 
-        self.assertEqual(len(data.keys()), 6)
+        self.assertEqual(len(data.keys()), 7)
 
     def test_start(self):
         random.seed(4123)

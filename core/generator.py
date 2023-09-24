@@ -1,3 +1,6 @@
+import gzip
+import os
+import pickle
 from tqdm import tqdm
 
 
@@ -37,9 +40,11 @@ def div_generator(n=13, amount=0, memo=None):
     return ans
 
 
-def generate_seqs_set() -> set[tuple[tuple[int]]]:
+def generate_seqs_set(length =  [2, 5, 8, 11, 14]) -> set[tuple[tuple[int]]]:
     dividers = {n: div_generator(n) for n in range(1, 14)}
-    seqs = [x for n in [2, 5, 8, 11, 14] for x in seq_generator(n)]
+    seqs = [x for n in length for x in seq_generator(n)]
+    if os.path.exists("./data/seqs.pkl.gz"):
+        return pickle.loads(gzip.open("./data/seqs.pkl.gz", "rb").read())
     ans = set()
     for seq in tqdm(seqs, desc="Generating sorted sequences", unit="seq"):
         if len(seq) == 1:

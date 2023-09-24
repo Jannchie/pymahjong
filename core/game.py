@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from random import shuffle
 
-from .player import Furu, FuruType, Player, Sute
+from .yaku import Yaku
+from .player import FuruType, Player, Sute
 from .hand import Hand, get_str_list
 from .tile import Tile
 from .utils import ALL
@@ -21,6 +22,14 @@ if TYPE_CHECKING:
 
 class GameConfig:
     last_junmei_reach = False
+
+
+class GameResult:
+    han: int
+    fu: int
+    agari: Agent
+    furikomi: Agent
+    yaku: list[Yaku]
 
 
 class Game:
@@ -157,7 +166,7 @@ class Game:
             should_add_dora = False  # 是否需要翻宝牌（因为明杠）
             # 如果进行的是暗杠或者加杠，则可能重复这段操作，否则退出循环
             while True:
-                in_turn_options = self.get_options(player, tsumohai, can_kan)
+                in_turn_options = self.get_in_turn_opts(player, tsumohai, can_kan)
 
                 # TODO：如果开启包牌规则，杠后自摸，被杠人支付点数
                 # TODO: 杠行为后，需要判断能否抢杠
@@ -204,6 +213,8 @@ class Game:
                         # 摸岭上牌
                         self.get_rinsyan(player)
 
+                        # TODO：判断是否四杠散了
+
                         # 需要之后翻宝牌
                         should_add_dora = True
                     else:
@@ -243,28 +254,7 @@ class Game:
                 self.dora_num += 1
                 should_add_dora = False
 
-            action_and_options = []
-            action: OutOfTurnAction = None
-            options: OptionsOutOfTurn = None
-
-            # 所有别家，同时判断是否能够吃、碰、杠、荣胡。
-            for i in range(len(self.players)):
-                if i == cur_player_idx:
-                    continue
-                options = OptionsOutOfTurn()
-                h = Hand(self.players[i].hand)
-
-                # 先判断是否可以吃碰杠
-                options.pon = h.pon_options(sutehai)
-                options.chi = h.chi_options(sutehai)
-                options.kan = h.kan_options(sutehai)
-
-                # 把牌放进手牌，判断是否能够荣胡
-                h.append(sutehai)
-                options.ron = h.syanten == -1
-                action = await self.agents[i].decide_out_of_turn(options)
-                if action:
-                    action_and_options.append((action, options))
+            action_and_options = await self.get_out_turn_act_and_opts(player, sutehai)
 
             if action_and_options:
                 # 优先级
@@ -280,11 +270,13 @@ class Game:
                     action_and_options, key=lambda x: p[x[0].type], reverse=True
                 )[0]
 
+                action: OutOfTurnAction
+                options: OptionsOutOfTurn
+
                 if action.type == OutofTurnActionType.RON:
                     # 荣胡
                     log += f"{agent}放炮，<{action.agents}>荣胡!"
                     print(log)
-                    return
                 elif action.type == OutofTurnActionType.CHI:
                     # 吃
                     log += f"<{action.agent}>吃!"
@@ -324,7 +316,32 @@ class Game:
                 t += 1
         print("荒牌流局")
 
-    def get_options(self, player: Player, tsumohai: Tile, can_kan: bool):
+    async def get_out_turn_act_and_opts(self, player, sutehai):
+        action_and_options = []
+        action: OutOfTurnAction = None
+        options: OptionsOutOfTurn = None
+
+        # 所有别家，同时判断是否能够吃、碰、杠、荣胡。
+        for i in range(len(self.players)):
+            if player == self.players[i]:
+                continue
+            options = OptionsOutOfTurn()
+            h = Hand(self.players[i].hand)
+
+            # 先判断是否可以吃碰杠
+            options.pon = h.pon_options(sutehai)
+            options.chi = h.chi_options(sutehai)
+            options.kan = h.kan_options(sutehai)
+
+            # 把牌放进手牌，判断是否能够荣胡
+            h.append(sutehai)
+            options.ron = h.syanten == -1
+            action = await self.agents[i].decide_out_of_turn(options)
+            if action:
+                action_and_options.append((action, options))
+        return action_and_options
+
+    def get_in_turn_opts(self, player: Player, tsumohai: Tile, can_kan: bool):
         syanten = player.hand.syanten  # 获取当前向听数
         options = OptionsInTurn()
         if player.reach:

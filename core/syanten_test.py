@@ -23,6 +23,9 @@ class TestSyanten(unittest.TestCase):
             (((1,), (1, 1, 1, 2, 2), (1,), (1, 2, 1, 2, 1, 2, 1), (1,), (1,), (2,)), 3),
             (((1,), (1, 1, 3), (1, 2, 1), (1, 2, 1), (1,), (1,), (1,), (2,)), 3),
             (((1,), (1, 1, 1, 1, 1), (2,), (1,), (1, 2, 1), (1,), (2,), (2,)), 2),
+            (((2,), (2,), (2,), (2,), (2,), (2,), (2,)), -1),
+            (((2,), (2,), (2,), (2,), (2,), (2,), (1,), (1,)), 0),
+            (((2,), (2,), (2,), (2,), (2,), (1,), (1,), (1,), (1,)), 1),
         ]
         for input_data, expected_result in test_cases_1:
             self.assertEqual(syanten(input_data, False), expected_result)
@@ -48,6 +51,7 @@ class TestSyanten(unittest.TestCase):
             self.assertEqual(
                 Hand.strthand(input_data).get_syanten(False), expected_result
             )
+
 
 if __name__ == "__main__":
     unittest.main()

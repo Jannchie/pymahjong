@@ -136,7 +136,7 @@ class Hand(list[Tile]):
         }
         cnt = Counter()
         for ch in s:
-            if ch in keys:
+            if keys[ch]:
                 if cur:
                     base_code = keys[ch] * 100 if keys[ch] < 3 else keys[ch] * 100 - 100
                     code_multiplier = 10 if keys[ch] < 3 else 100
@@ -157,8 +157,6 @@ class Hand(list[Tile]):
                     cur = []
             else:
                 cur.append(int(ch))
-        if cur:
-            ans += [Tile(keys[ch] * 100 + i * 10) for i in cur]
         return Hand(ans)
 
     @staticmethod
@@ -203,7 +201,7 @@ class Hand(list[Tile]):
     def encode(self) -> tuple[tuple[int]]:
         """
         将手牌编码为一个序列，用于计算向听数
-        时间复杂度 O(log(n))
+        时间复杂度 O(nlog(n))
 
         Returns:
             list[list[int]]: _description_

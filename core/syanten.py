@@ -3,9 +3,8 @@ import pickle
 import gzip
 import os
 
-import tqdm
-
-from core.generator import generate_seqs_set
+from tqdm import tqdm
+from .generator import generate_seqs_set
 
 syanten_dict = None
 
@@ -36,9 +35,6 @@ def syanten(seq_tuple: tuple[tuple[int]], use_table=True) -> int:
         seq.insert(0, (1,))
         nums += 1
 
-    if syanten_dict is not None:
-        return syanten_dict[tuple(sorted([tuple(t) for t in seq]))]
-
     # 预处理
     # 1. 获取可能的 0.雀头、1.顺子、2.刻子、3.搭子、4.对子
     # 2. 获取总牌数
@@ -62,6 +58,12 @@ def syanten(seq_tuple: tuple[tuple[int]], use_table=True) -> int:
             if j < len(seq[i]) - 2 and seq[i][j] >= 1 and seq[i][j + 2] >= 1:  # 搭子
                 data["pos"][3].append((i, j))
 
+    # 七对子向听数检测
+    if nums == 14:
+        s_7 = 6 - len(data["pos"][4])
+    else:
+        s_7 = 999
+
     data["k"] = int((nums - 2) / 3)
     data["menzu"] = 0
     data["dazu"] = 0
@@ -69,7 +71,7 @@ def syanten(seq_tuple: tuple[tuple[int]], use_table=True) -> int:
     for has_atama in atama_iter(seq, data["pos"][0]):  # 迭代所有雀头
         data["atama"] = 1 if has_atama else 0
         pop_menzu(seq, data, nums - 2 if has_atama else nums, has_atama, 0)
-    return data["s_min"]
+    return min(data["s_min"], s_7)
 
 
 def load_or_generate_table():
@@ -206,7 +208,7 @@ def syanten_other(
 
 
 def calculate_syanten(seq):
-    return (seq, syanten(seq))
+    return (seq, syanten(seq, False))
 
 
 def save_dict(syanten_dict: dict):
@@ -215,8 +217,7 @@ def save_dict(syanten_dict: dict):
 
 def generate_syanten_dict():
     seqs_data = generate_seqs_set()
-    if os.path.exists("./data/syanten.pkl.gz"):
-        return pickle.loads(gzip.open("./data/syanten.pkl.gz", "rb").read())
+
     # 使用多进程池
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
 
